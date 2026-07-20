@@ -36,3 +36,6 @@ Thumbs.db
 
 # Lambda invoke output
 response.json
+
+#kiro
+.kiro/*
