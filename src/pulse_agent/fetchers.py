@@ -7,6 +7,7 @@ Failures in individual fetchers are caught and logged without stopping the pipel
 import urllib.request
 import json
 import logging
+import xml.etree.ElementTree as ET
 from typing import TypedDict
 
 logger = logging.getLogger(__name__)
@@ -64,39 +65,69 @@ def fetch_hackernews() -> list[Post]:
     return posts
 
 
+def _http_get(url: str, headers: dict | None = None) -> str:
+    """Make an HTTP GET request and return raw response text."""
+    req = urllib.request.Request(url)
+    if headers:
+        for key, value in headers.items():
+            req.add_header(key, value)
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        return resp.read().decode()
+
+
+def _parse_rss(xml_text: str, source: str, limit: int = 25) -> list[Post]:
+    """Parse RSS/Atom XML and return a list of Posts."""
+    root = ET.fromstring(xml_text)
+    posts = []
+
+    # RSS 2.0 format
+    ns = {"atom": "http://www.w3.org/2005/Atom"}
+    items = root.findall(".//item")
+    for item in items[:limit]:
+        title_el = item.find("title")
+        link_el = item.find("link")
+        title = title_el.text if title_el is not None else None
+        url = link_el.text if link_el is not None else None
+        if title and url:
+            posts.append(Post(title=title.strip(), url=url.strip(), source=source))
+
+    # Atom format fallback
+    if not posts:
+        entries = root.findall(".//{http://www.w3.org/2005/Atom}entry")
+        for entry in entries[:limit]:
+            title_el = entry.find("{http://www.w3.org/2005/Atom}title")
+            link_el = entry.find("{http://www.w3.org/2005/Atom}link")
+            title = title_el.text if title_el is not None else None
+            url = link_el.get("href") if link_el is not None else None
+            if title and url:
+                posts.append(Post(title=title.strip(), url=url.strip(), source=source))
+
+    return posts
+
+
 def fetch_devto() -> list[Post]:
-    """Fetch recent articles from Dev.to API."""
-    articles = _http_get_json("https://dev.to/api/articles?per_page=30")
-    return [
-        Post(title=a["title"], url=a["url"], source="Dev.to")
-        for a in articles if a.get("title") and a.get("url")
-    ]
+    """Fetch recent articles from Dev.to via RSS feed."""
+    xml = _http_get("https://dev.to/feed")
+    return _parse_rss(xml, source="Dev.to")
 
 
 def fetch_reddit_aws() -> list[Post]:
-    """Fetch recent posts from Reddit r/aws."""
-    return _fetch_reddit("aws")
+    """Fetch recent posts from Reddit r/aws via RSS."""
+    return _fetch_reddit_rss("aws")
 
 
 def fetch_reddit_programming() -> list[Post]:
-    """Fetch recent posts from Reddit r/programming."""
-    return _fetch_reddit("programming")
+    """Fetch recent posts from Reddit r/programming via RSS."""
+    return _fetch_reddit_rss("programming")
 
 
-def _fetch_reddit(subreddit: str) -> list[Post]:
-    """Fetch posts from a specific subreddit."""
-    data = _http_get_json(
-        f"https://www.reddit.com/r/{subreddit}/hot.json?limit=25",
+def _fetch_reddit_rss(subreddit: str) -> list[Post]:
+    """Fetch posts from a subreddit via its RSS feed."""
+    xml = _http_get(
+        f"https://www.reddit.com/r/{subreddit}/hot.rss?limit=25",
         headers={"User-Agent": "DevCommunityPulseAgent/1.0"}
     )
-    posts = []
-    for child in data.get("data", {}).get("children", []):
-        post_data = child.get("data", {})
-        title = post_data.get("title")
-        url = post_data.get("url")
-        if title and url:
-            posts.append(Post(title=title, url=url, source=f"Reddit r/{subreddit}"))
-    return posts
+    return _parse_rss(xml, source=f"Reddit r/{subreddit}")
 
 
 def fetch_all_sources() -> list[Post]:

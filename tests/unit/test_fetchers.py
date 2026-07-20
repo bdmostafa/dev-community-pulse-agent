@@ -27,13 +27,16 @@ def test_fetch_hackernews(mock_get):
     assert posts[1] == {"title": "Story B", "url": "https://b.com", "source": "Hacker News"}
 
 
-@patch("src.pulse_agent.fetchers._http_get_json")
+@patch("src.pulse_agent.fetchers._http_get")
 def test_fetch_devto(mock_get):
-    """Mock _http_get_json to return fake article list, verify correct Post list."""
-    mock_get.return_value = [
-        {"title": "Dev Article 1", "url": "https://dev.to/article1"},
-        {"title": "Dev Article 2", "url": "https://dev.to/article2"},
-    ]
+    """Mock _http_get to return fake RSS XML, verify correct Post list."""
+    mock_get.return_value = """<?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+      <channel>
+        <item><title>Dev Article 1</title><link>https://dev.to/article1</link></item>
+        <item><title>Dev Article 2</title><link>https://dev.to/article2</link></item>
+      </channel>
+    </rss>"""
 
     posts = fetch_devto()
 
@@ -42,17 +45,14 @@ def test_fetch_devto(mock_get):
     assert posts[1] == {"title": "Dev Article 2", "url": "https://dev.to/article2", "source": "Dev.to"}
 
 
-@patch("src.pulse_agent.fetchers._http_get_json")
+@patch("src.pulse_agent.fetchers._http_get")
 def test_fetch_reddit_aws(mock_get):
-    """Mock _http_get_json to return fake Reddit JSON structure, verify 'Reddit r/aws' source."""
-    mock_get.return_value = {
-        "data": {
-            "children": [
-                {"data": {"title": "AWS Post 1", "url": "https://reddit.com/r/aws/1"}},
-                {"data": {"title": "AWS Post 2", "url": "https://reddit.com/r/aws/2"}},
-            ]
-        }
-    }
+    """Mock _http_get to return fake Atom XML, verify 'Reddit r/aws' source."""
+    mock_get.return_value = """<?xml version="1.0" encoding="UTF-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <entry><title>AWS Post 1</title><link href="https://reddit.com/r/aws/1"/></entry>
+      <entry><title>AWS Post 2</title><link href="https://reddit.com/r/aws/2"/></entry>
+    </feed>"""
 
     posts = fetch_reddit_aws()
 
@@ -61,16 +61,13 @@ def test_fetch_reddit_aws(mock_get):
     assert posts[1] == {"title": "AWS Post 2", "url": "https://reddit.com/r/aws/2", "source": "Reddit r/aws"}
 
 
-@patch("src.pulse_agent.fetchers._http_get_json")
+@patch("src.pulse_agent.fetchers._http_get")
 def test_fetch_reddit_programming(mock_get):
-    """Mock _http_get_json to return fake Reddit JSON, verify 'Reddit r/programming' source."""
-    mock_get.return_value = {
-        "data": {
-            "children": [
-                {"data": {"title": "Prog Post", "url": "https://reddit.com/r/programming/1"}},
-            ]
-        }
-    }
+    """Mock _http_get to return fake Atom XML, verify 'Reddit r/programming' source."""
+    mock_get.return_value = """<?xml version="1.0" encoding="UTF-8"?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+      <entry><title>Prog Post</title><link href="https://reddit.com/r/programming/1"/></entry>
+    </feed>"""
 
     posts = fetch_reddit_programming()
 
