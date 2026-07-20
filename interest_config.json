@@ -1,0 +1,5 @@
+{
+  "interests": ["aws", "serverless", "python", "ai", "llm"],
+  "recipient_email": "developer@example.com",
+  "sender_email": "pulse@example.com"
+}
