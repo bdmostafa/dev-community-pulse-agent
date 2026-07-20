@@ -4,7 +4,7 @@
 
 An AI-powered serverless agent that runs autonomously every morning, scans 110+ posts from developer communities, filters them by your interests using Amazon Bedrock, and delivers a curated HTML digest to your inbox — before you even wake up.
 
-Built for the [AWS Builder Center Weekend Agent Challenge](https://builder.aws.com/).
+Built for the [AWS Builder Center Weekend Agent Challenge](https://builder.aws.com/) and published here ➡️ [Dev Community Pulse Agent](https://builder.aws.com/content/3Gm5DiclnHn06mDV8gyi3IdfriN/weekend-agent-challenge-dev-community-pulse-agent)
 
 ---
 
