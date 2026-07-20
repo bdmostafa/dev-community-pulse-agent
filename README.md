@@ -1,5 +1,7 @@
 # Dev Community Pulse Agent
 
+<img width="2752" height="1536" alt="dev community pulse ai agent" src="https://github.com/user-attachments/assets/8dfaf3e2-da90-489d-89d1-0d61fb1dc782" />
+
 An AI-powered serverless agent that runs autonomously every morning, scans 110+ posts from developer communities, filters them by your interests using Amazon Bedrock, and delivers a curated HTML digest to your inbox — before you even wake up.
 
 Built for the [AWS Builder Center Weekend Agent Challenge](https://builder.aws.com/).
@@ -35,6 +37,9 @@ EventBridge Scheduler (cron: 0 6 * * ? *)
   Amazon Bedrock       Amazon SES
   (Nova Micro)         (HTML Email)
 ```
+
+<img width="1536" height="1024" alt="Ved Community Pulse AI Agent - High level architecture" src="https://github.com/user-attachments/assets/3fcb640d-ef28-4f59-81f2-ce0a312a405e" />
+
 
 ## AWS Services
 
